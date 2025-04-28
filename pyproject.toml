@@ -1,0 +1,12 @@
+[project]
+name = "gilded-rose-python"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "approvaltests>=14.5.0",
+    "coverage>=7.8.0",
+    "pytest>=8.3.5",
+    "pytest-approvaltests>=0.2.4",
+]
