@@ -17,39 +17,38 @@ class GildedRose(object):
         if item.name == "Sulfuras, Hand of Ragnaros":
             return
 
-        # 不需要在乎 sell_in 和 quality 的關係的物品的更新邏輯
-        if (
-            item.name != "Aged Brie"
-            and item.name != "Backstage passes to a TAFKAL80ETC concert"
-        ):
-            if item.quality > 0:
-                item.quality = item.quality - 1
         # sell_in 會影響 quality 更新邏輯的物品的更新邏輯 (Aged Brie 和 Backstage passes to a TAFKAL80ETC concert)
-        else:
-            if item.quality < 50:
-                item.quality = item.quality + 1
-                # Backstage passes to a TAFKAL80ETC concert 的品質更新邏輯
-                if item.name == "Backstage passes to a TAFKAL80ETC concert":
-                    if item.sell_in < 10:
-                        if item.quality < 50:
-                            item.quality = item.quality + 1
-                    if item.sell_in < 5:
-                        if item.quality < 50:
-                            item.quality = item.quality + 1
-        # 過期後的各類物品的品質更新邏輯
-        if item.sell_in < 0:
-            if item.name != "Aged Brie":
-                if item.name != "Backstage passes to a TAFKAL80ETC concert":
-                    # 一般物品的過期後品質更新邏輯
-                    if item.quality > 0:
-                        item.quality = item.quality - 1
-                # Backstage passes to a TAFKAL80ETC concert 的過期後品質更新邏輯
-                else:
-                    item.quality = item.quality - item.quality
+        if item.name == "Aged Brie":
             # Aged Brie 的過期後品質更新邏輯
+            if item.sell_in < 0:
+                item.quality = item.quality + 2
+            # Aged Brie 的品質更新邏輯
             else:
-                if item.quality < 50:
-                    item.quality = item.quality + 1
+                item.quality = item.quality + 1
+        elif item.name == "Backstage passes to a TAFKAL80ETC concert":
+            # Backstage passes to a TAFKAL80ETC concert 的品質更新邏輯
+            if item.sell_in >= 10:
+                item.quality = item.quality + 1
+            elif item.sell_in < 10 and item.sell_in >= 5:
+                item.quality = item.quality + 2
+            elif item.sell_in < 5 and item.sell_in >= 0:
+                item.quality = item.quality + 3
+            # Backstage passes to a TAFKAL80ETC concert 的過期後品質更新邏輯
+            else:
+                item.quality = item.quality - item.quality
+        else:
+            if item.sell_in < 0:
+                item.quality = item.quality - 2
+            # 一般物品的品質更新邏輯
+            else:
+                item.quality = item.quality - 1
+
+        # 物品品質(quality)不得超過 50
+        if item.quality > 50:
+            item.quality = 50
+        # 物品品質(quality)不得少於 0
+        if item.quality < 0:
+            item.quality = 0
 
     def update_quality(self):
         for item in self.items:
