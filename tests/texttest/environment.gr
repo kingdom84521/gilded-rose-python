@@ -1,1 +1,1 @@
-PYTHONPATH:/home/ubuntu/works/gilded-rose-python
+PYTHONPATH:${TEXTTEST_HOME}/../..
