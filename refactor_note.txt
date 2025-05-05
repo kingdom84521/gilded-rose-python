@@ -3,3 +3,11 @@ Step 0:
 更動: 幫 gilded_rose.py line by line 的寫註解。
 原因: 確保自己有理解每一段在做什麼，以及它預期的行為。
 參考: 無
+
+Step 1:
+
+更動: 把 Sulfuras 的物品判斷邏輯獨立出來，移到最前面
+原因: Sulfuras 的判斷在原程式碼中重複數次
+參考:
+    - DRY(Don't Repeat Yourself): https://shawnlin0201.github.io/Methodology/Methodology-001-DRY-principle/
+    - Return Early: https://medium.com/swlh/return-early-pattern-3d18a41bba8
