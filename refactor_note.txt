@@ -11,3 +11,12 @@ Step 1:
 參考:
     - DRY(Don't Repeat Yourself): https://shawnlin0201.github.io/Methodology/Methodology-001-DRY-principle/
     - Return Early: https://medium.com/swlh/return-early-pattern-3d18a41bba8
+
+Step 2:
+
+更動: 把 sell_in 和 quality 的更新邏輯從 updateQuality 中獨立出來
+原因: 原本 updateQuality 混雜了兩種東西(sell_in, quality)的更新邏輯，造成可讀性降低
+參考: 
+    - SRP(Single Responsibility Principle): https://igouist.github.io/post/2020/10/oo-10-single-responsibility-principle/
+    - 關注點分離: https://zh.wikipedia.org/zh-tw/%E5%85%B3%E6%B3%A8%E7%82%B9%E5%88%86%E7%A6%BB
+
