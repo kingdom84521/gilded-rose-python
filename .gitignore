@@ -1,7 +1,9 @@
 .venv
 .vscode
-.python-version
 .approval_tests_temp
-__pycache__
+.python-version
+*.egg-info/
 *.swp
 *.swo
+__pycache__
+build/
