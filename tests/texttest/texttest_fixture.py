@@ -2,7 +2,8 @@
 # ruff: noqa: F403, F405
 from __future__ import print_function
 
-from gilded_rose import *
+from src.gilded_rose import GildedRose
+from src.classes.item import Item
 
 if __name__ == "__main__":
     print("OMGHAI!")
