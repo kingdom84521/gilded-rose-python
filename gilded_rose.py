@@ -1,74 +1,125 @@
 # -*- coding: utf-8 -*-
+from abc import ABC as AbstractClass, abstractmethod
+from typing import Self, Type
 
+
+class ItemHandler(AbstractClass):
+    def __init__(self, item: "Item"):
+        self._item = item
+
+    @property
+    def item(self) -> "Item":
+        return self._item
+
+    def adjust_quality(self, delta: int):
+        MAX_QUALITY = 50
+        MIN_QUALITY = 0
+
+        self._item.quality = min(MAX_QUALITY, max(MIN_QUALITY, self._item.quality + delta))
+
+    @staticmethod
+    @abstractmethod
+    def should_handle(item: "Item") -> bool: ...
+
+    @abstractmethod
+    def update_sell_in(self) -> None: ...
+
+    @abstractmethod
+    def update_quality(self) -> None: ...
+
+class ItemHandlerRegistry:
+    def __init__(self: Self, fallback: Type["ItemHandler"] | None = None):
+        self._registry: list[ItemHandler] = []
+        self._fallback = fallback
+
+    def register(self, handler: Type[ItemHandler]) -> Type[ItemHandler]:
+        if handler is not self._fallback:
+            self._registry.append(handler)
+        return handler
+    
+    def get_handler(self, item: Type["Item"]):
+        for handler in self._registry:
+            if handler.should_handle(item):
+                return handler(item)
+        return self._fallback(item)
+
+class NormalHandler(ItemHandler):
+    @staticmethod
+    def should_handle():
+        return True
+
+    def update_sell_in(self):
+        self._item.sell_in -= 1
+        
+
+    def update_quality(self):
+        # 一般物品的過期後品質更新邏輯
+        if self._item.sell_in < 0:
+            self.adjust_quality(-2)
+        # 一般物品的品質更新邏輯
+        else:
+            self.adjust_quality(-1)
+
+handler_registry = ItemHandlerRegistry(NormalHandler)
+
+@handler_registry.register
+class SulfurasHandler(ItemHandler):
+    @staticmethod
+    def should_handle(item):
+        return item.name == "Sulfuras, Hand of Ragnaros"
+
+    def update_sell_in(self):
+        return
+
+    def update_quality(self):
+        return
+
+@handler_registry.register
+class AgedBrieHandler(ItemHandler):
+    @staticmethod
+    def should_handle(item):
+        return item.name == "Aged Brie"
+
+    def update_sell_in(self):
+        self._item.sell_in -= 1
+
+    def update_quality(self):
+        # Aged Brie 的過期後品質更新邏輯
+        if self._item.sell_in < 0:
+            self.adjust_quality(2)
+        # Aged Brie 的品質更新邏輯
+        else:
+            self.adjust_quality(1)
+
+@handler_registry.register
+class BackstagePassHandler(ItemHandler):
+    @staticmethod
+    def should_handle(item):
+        return item.name == "Backstage passes to a TAFKAL80ETC concert"
+
+    def update_sell_in(self):
+        self._item.sell_in -= 1
+
+    def update_quality(self):
+        # Backstage passes to a TAFKAL80ETC concert 的品質更新邏輯
+        if self._item.sell_in >= 10:
+            self.adjust_quality(1)
+        elif self._item.sell_in < 10 and self._item.sell_in >= 5:
+            self.adjust_quality(2)
+        elif self._item.sell_in < 5 and self._item.sell_in >= 0:
+            self.adjust_quality(3)
+        # Backstage passes to a TAFKAL80ETC concert 的過期後品質更新邏輯
+        else:
+            self._item.quality = 0
 
 class GildedRose(object):
     def __init__(self, items):
-        self.items = items
-
-    def update_item_sell_in(self, item):
-        # Sulfuras, Hand of Ragnaros 是 Special Case, 略過
-        if item.name == "Sulfuras, Hand of Ragnaros":
-            return
-
-        item.sell_in = item.sell_in - 1
-
-    def _clamp_quality(self, quality):
-        # 限制 quality 的範圍
-        return 50 if quality > 50 else 0 if quality < 0 else quality
-
-    def update_sulfuras_quality(self, item):
-        # Sulfuras, Hand of Ragnaros 是 Special Case, 略過
-        return
-
-    def update_aged_brie_quality(self, item):
-        # Aged Brie 的過期後品質更新邏輯
-        if item.sell_in < 0:
-            item.quality = item.quality + 2
-        # Aged Brie 的品質更新邏輯
-        else:
-            item.quality = item.quality + 1
-
-        item.quality = self._clamp_quality(item.quality)
-
-    def update_backstage_pass_quality(self, item):
-        # Backstage passes to a TAFKAL80ETC concert 的品質更新邏輯
-        if item.sell_in >= 10:
-            item.quality = item.quality + 1
-        elif item.sell_in < 10 and item.sell_in >= 5:
-            item.quality = item.quality + 2
-        elif item.sell_in < 5 and item.sell_in >= 0:
-            item.quality = item.quality + 3
-        # Backstage passes to a TAFKAL80ETC concert 的過期後品質更新邏輯
-        else:
-            item.quality = item.quality - item.quality
-
-        item.quality = self._clamp_quality(item.quality)
-
-    def udpate_normal_quality(self, item):
-        # 一般物品的過期後品質更新邏輯
-        if item.sell_in < 0:
-            item.quality = item.quality - 2
-        # 一般物品的品質更新邏輯
-        else:
-            item.quality = item.quality - 1
-
-        item.quality = self._clamp_quality(item.quality)
-
-    def update_item_quality(self, item):
-        # Sulfuras, Hand of Ragnaros 是 Special Case, 略過
-        if item.name == "Sulfuras, Hand of Ragnaros":
-            self.update_sulfuras_quality(item)
-        elif item.name == "Aged Brie":
-            self.update_aged_brie_quality(item)
-        elif item.name == "Backstage passes to a TAFKAL80ETC concert":
-            self.update_backstage_pass_quality(item)
-        else:
-            self.udpate_normal_quality(item)
+        self._handlers = [handler_registry.get_handler(item) for item in items]
 
     def update_quality(self):
-        for item in self.items:
-            self.update_item_sell_in(item)
-            self.update_item_quality(item)
+        for handler in self._handlers:
+            handler.update_sell_in()
+            handler.update_quality()
 
 
 class Item:
